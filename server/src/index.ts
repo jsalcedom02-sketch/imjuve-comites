@@ -32,16 +32,30 @@ app.get('/health', (_req, res) => {
 });
 
 // ── Servir cliente estático en producción ──
-const clientDist = path.resolve(__dirname, '..', '..', 'client', 'dist');
-if (fs.existsSync(clientDist)) {
+const possiblePaths = [
+  path.resolve(__dirname, '..', '..', 'client', 'dist'),
+  path.resolve(process.cwd(), '..', 'client', 'dist'),
+  path.resolve(process.cwd(), 'client', 'dist'),
+  path.join(process.cwd(), '..', 'client', 'dist'),
+];
+let clientDist = null;
+for (const p of possiblePaths) {
+  if (fs.existsSync(p)) {
+    clientDist = p;
+    break;
+  }
+}
+if (clientDist) {
   app.use(express.static(clientDist));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
-  console.log('✅ Sirviendo frontend estático');
-  console.log(`📦 Sirviendo cliente estático desde ${clientDist}`);
+  console.log(`✅ Sirviendo frontend estático desde ${clientDist}`);
 } else {
   console.log('⚡ Modo desarrollo: no se encontró client/dist');
+  console.log(`   Buscado en: ${possiblePaths.join(', ')}`);
+  console.log(`   __dirname: ${__dirname}`);
+  console.log(`   cwd: ${process.cwd()}`);
 }
 
 initDb().then(() => {
