@@ -27,6 +27,9 @@ app.use('/api/audit', auditRoutes);
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // ── Servir cliente estático en producción ──
 const clientDist = path.resolve(__dirname, '..', '..', 'client', 'dist');
@@ -35,6 +38,7 @@ if (fs.existsSync(clientDist)) {
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
+  console.log('✅ Sirviendo frontend estático');
   console.log(`📦 Sirviendo cliente estático desde ${clientDist}`);
 } else {
   console.log('⚡ Modo desarrollo: no se encontró client/dist');
