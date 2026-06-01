@@ -1,16 +1,8 @@
 {
-  "name": "imjuve-comites-plataforma",
-  "version": "1.0.0",
+  "name": "imjuve-comites",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "npm run dev --prefix server",
-    "dev:client": "npm run dev --prefix client",
-    "build": "npm run build --prefix server && npm run build --prefix client",
-    "seed": "npm run seed --prefix server",
-    "setup": "npm install && cd server && npm install && cd ../client && npm install && cd .. && npm run seed"
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.0"
+    "build": "cd client && npm install && npx vite build && cd ../server && npm install",
+    "start": "cd server && npm run seed && npm start"
   }
 }
