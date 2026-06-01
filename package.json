@@ -1,8 +1,0 @@
-{
-  "name": "imjuve-comites",
-  "private": true,
-  "scripts": {
-    "build": "cd client && npm install && npx vite build && cd ../server && npm install",
-    "start": "cd server && npm run seed && npm start"
-  }
-}

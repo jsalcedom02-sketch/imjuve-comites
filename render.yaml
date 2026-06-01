@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: imjuve-comites
+    env: node
+    region: ohio
+    buildCommand: cd client && npm install && npx vite build && cd ../server && npm install
+    startCommand: cd server && npm run seed && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 3001
