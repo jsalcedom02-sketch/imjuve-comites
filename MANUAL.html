@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de Usuario — Plataforma Comités IMJUVE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1e1e1e;
+    background: #fff;
+    line-height: 1.6;
+    padding: 0;
+  }
+  .cover {
+    background: linear-gradient(135deg, #5e0b1e 0%, #9e1b35 100%);
+    color: #fff;
+    padding: 80px 60px;
+    text-align: center;
+    page-break-after: always;
+  }
+  .cover h1 { font-size: 36px; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .cover h2 { font-size: 20px; font-weight: 400; opacity: 0.9; margin-bottom: 30px; }
+  .cover .meta { font-size: 14px; opacity: 0.75; }
+  .page { max-width: 800px; margin: 0 auto; padding: 50px 40px; }
+  .page-break { page-break-before: always; }
+  h2 { font-size: 24px; color: #5e0b1e; margin: 40px 0 16px; padding-bottom: 6px; border-bottom: 2px solid #ece0e0; }
+  h3 { font-size: 18px; color: #9e1b35; margin: 28px 0 10px; }
+  h4 { font-size: 15px; color: #025959; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 8px 12px; text-align: left; border: 1px solid #e0d6d0; }
+  th { background: #f4eee4; color: #5e0b1e; font-weight: 600; }
+  code { background: #f4eee4; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: #f8f4ee; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; border: 1px solid #ece0e0; margin: 12px 0; }
+  .note { background: #fef9e7; border-left: 4px solid #d4a06a; padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
+  .tip { background: #e8f4f0; border-left: 4px solid #025959; padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
+  .warn { background: #fde8e8; border-left: 4px solid #c0392b; padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
+  .toc { background: #faf6f0; border: 1px solid #ece0e0; border-radius: 12px; padding: 24px 32px; margin: 24px 0; }
+  .toc h3 { margin-top: 0; }
+  .toc ol { counter-reset: item; }
+  .toc ol li { counter-increment: item; margin-bottom: 6px; }
+  .toc ol li::marker { content: counter(item) ". "; font-weight: 600; color: #9e1b35; }
+  .toc ol li a { color: #5e0b1e; text-decoration: none; }
+  .toc ol li a:hover { text-decoration: underline; }
+  .toc ol ol { margin-top: 4px; }
+  .toc ol ol li { counter-increment: item; }
+  .step { margin: 12px 0; }
+  .step strong { color: #5e0b1e; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff; }
+  .badge-admin { background: #9e1b35; }
+  .badge-terri { background: #1a7a4a; }
+  .badge-coord { background: #005e63; }
+  .badge-promo { background: #8a4a55; }
+  @media print {
+    .cover { padding: 60px 40px; }
+    .page { max-width: 100%; padding: 40px; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    body { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== PORTADA ========== -->
+<div class="cover">
+  <h1>Plataforma de Gestión de Comités Juveniles</h1>
+  <h2>Manual de Usuario y Despliegue</h2>
+  <p class="meta">Instituto Mexicano de la Juventud (IMJUVE)</p>
+  <p class="meta">Versión 1.0 — Junio 2026</p>
+</div>
+
+<!-- ========== TABLE OF CONTENTS ========== -->
+<div class="page">
+  <div class="toc">
+    <h3>Contenido</h3>
+    <ol>
+      <li><a href="#intro">Introducción</a></li>
+      <li><a href="#requisitos">Requisitos del Sistema</a></li>
+      <li><a href="#instalacion">Instalación Local</a></li>
+      <li><a href="#usuarios">Usuarios y Roles</a>
+        <ol>
+          <li><a href="#rol-admin">Administrador</a></li>
+          <li><a href="#rol-terri">Territorial</a></li>
+          <li><a href="#rol-coord">Coordinador</a></li>
+          <li><a href="#rol-promo">Promotor</a></li>
+        </ol>
+      </li>
+      <li><a href="#modulos">Módulos del Sistema</a>
+        <ol>
+          <li><a href="#mod-registro">Registro de Comité</a></li>
+          <li><a href="#mod-historial">Historial de Actas</a></li>
+          <li><a href="#mod-consulta">Consulta de Comités</a></li>
+          <li><a href="#mod-dashboard">Dashboard</a></li>
+          <li><a href="#mod-estadisticas">Estadística del Estado</a></li>
+          <li><a href="#mod-cargar">Cargar Comités</a></li>
+          <li><a href="#mod-admin">Administración</a></li>
+        </ol>
+      </li>
+      <li><a href="#csv">Importación CSV de Comités</a></li>
+      <li><a href="#usuarios-crud">Gestión de Usuarios</a></li>
+      <li><a href="#auditoria">Auditoría</a></li>
+      <li><a href="#base-datos">Base de Datos</a></li>
+      <li><a href="#despliegue">Despliegue en Producción</a>
+        <ol>
+          <li><a href="#deploy-vps">Servidor VPS con Nginx</a></li>
+          <li><a href="#deploy-paas">Plataforma como Servicio</a></li>
+          <li><a href="#deploy-ssl">Configurar SSL</a></li>
+        </ol>
+      </li>
+      <li><a href="#solucion">Solución de Problemas</a></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ========== 1. INTRODUCCIÓN ========== -->
+<div class="page page-break" id="intro">
+  <h2>1. Introducción</h2>
+  <p>La Plataforma de Gestión de Comités Juveniles IMJUVE es un sistema web que permite registrar, consultar, editar y gestionar los Comités Juveniles por la Transformación a nivel nacional.</p>
+  <p>El sistema cuenta con control de acceso basado en roles (RBAC), dashboard interactivo con mapas y gráficas, generación automatizada de actas en PDF, y un módulo de auditoría que registra todas las acciones realizadas.</p>
+
+  <h3>Funcionalidades principales</h3>
+  <ul>
+    <li>Registro de comités con captura de fotografía, datos del comité e integrantes</li>
+    <li>Generación de actas en PDF con código QR y diseño oficial IMJUVE</li>
+    <li>Dashboard con estadísticas, mapa de calor y gráficas dinámicas</li>
+    <li>Consulta y edición de comités registrados</li>
+    <li>Importación masiva desde archivo CSV</li>
+    <li>Gestión de usuarios con 4 roles distintos</li>
+    <li>Bitácora de auditoría exportable</li>
+  </ul>
+</div>
+
+<!-- ========== 2. REQUISITOS ========== -->
+<div class="page page-break" id="requisitos">
+  <h2>2. Requisitos del Sistema</h2>
+
+  <h3>Para ejecutar el servidor</h3>
+  <ul>
+    <li><strong>Node.js</strong> versión 18 o superior</li>
+    <li><strong>Sistema operativo:</strong> Windows 10+, Ubuntu 20.04+, macOS 12+</li>
+    <li><strong>RAM:</strong> mínimo 512 MB libres (recomendado 1 GB)</li>
+    <li><strong>Almacenamiento:</strong> ~200 MB para la aplicación + espacio para fotos</li>
+  </ul>
+
+  <h3>Para acceder desde el navegador</h3>
+  <ul>
+    <li>Google Chrome 90+, Mozilla Firefox 90+, Microsoft Edge 90+, Safari 15+</li>
+    <li>Conexión a internet o red local</li>
+    <li>Resolución mínima recomendada: 1024×768</li>
+  </ul>
+</div>
+
+<!-- ========== 3. INSTALACIÓN LOCAL ========== -->
+<div class="page page-break" id="instalacion">
+  <h2>3. Instalación Local</h2>
+
+  <h3>Windows</h3>
+  <ol>
+    <li>Instalar Node.js 18+ desde <a href="https://nodejs.org">nodejs.org</a></li>
+    <li>Copiar la carpeta del proyecto a la ubicación deseada</li>
+    <li>Ejecutar <code>iniciar-servidor.bat</code> haciendo doble clic</li>
+    <li>El script instalará dependencias, sembrará datos de prueba e iniciará el servidor</li>
+    <li>Abrir el navegador en <strong>http://localhost:3001</strong></li>
+  </ol>
+
+  <div class="tip">En Windows, si PowerShell bloquea la ejecución de scripts, ejecute el Comando como Administrador: <code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</code></div>
+
+  <h3>Linux / macOS</h3>
+  <ol>
+    <li>Instalar Node.js 18+ (Linux: <code>sudo apt install nodejs npm</code>)</li>
+    <li>Abrir terminal en la carpeta del proyecto</li>
+    <li>Ejecutar: <code>chmod +x start-server.sh && ./start-server.sh</code></li>
+    <li>Abrir el navegador en <strong>http://localhost:3001</strong></li>
+  </ol>
+
+  <h3>Instalación manual paso a paso</h3>
+  <ol>
+    <li><code>cd server</code></li>
+    <li><code>npm install</code></li>
+    <li><code>npx tsx src/seed.ts</code> (opcional, crea datos de prueba)</li>
+    <li><code>PORT=3001 npx tsx src/index.ts</code></li>
+    <li>Abrir <strong>http://localhost:3001</strong></li>
+  </ol>
+</div>
+
+<!-- ========== 4. USUARIOS Y ROLES ========== -->
+<div class="page page-break" id="usuarios">
+  <h2>4. Usuarios y Roles</h2>
+  <p>Todos los usuarios precargados tienen contraseña <code>0000</code>.</p>
+
+  <table>
+    <tr><th>Usuario</th><th>Rol</th><th>Nombre</th><th>Estados asignados</th></tr>
+    <tr><td>ADMIN1</td><td><span class="badge badge-admin">Administrador</span></td><td>Juan Pérez</td><td>Todos</td></tr>
+    <tr><td>ADMIN2</td><td><span class="badge badge-admin">Administrador</span></td><td>Laura Mendoza</td><td>Todos</td></tr>
+    <tr><td>TERRI1</td><td><span class="badge badge-terri">Territorial</span></td><td>Carlos Hernández</td><td>CDMX, México, Jalisco</td></tr>
+    <tr><td>TERRI2</td><td><span class="badge badge-terri">Territorial</span></td><td>Sofía Ramírez</td><td>Nuevo León, Veracruz, Yucatán</td></tr>
+    <tr><td>COORD1</td><td><span class="badge badge-coord">Coordinador</span></td><td>María García</td><td>Nuevo León</td></tr>
+    <tr><td>COORD2</td><td><span class="badge badge-coord">Coordinador</span></td><td>Pedro Sánchez</td><td>Jalisco</td></tr>
+    <tr><td>PROMO1</td><td><span class="badge badge-promo">Promotor</span></td><td>Ana López</td><td>Veracruz</td></tr>
+    <tr><td>PROMO2</td><td><span class="badge badge-promo">Promotor</span></td><td>Roberto Díaz</td><td>Guanajuato</td></tr>
+  </table>
+
+  <!-- 4.1 ADMIN -->
+  <div id="rol-admin">
+    <h3>4.1 Administrador</h3>
+    <p>Acceso total y sin restricciones a toda la plataforma:</p>
+    <ul>
+      <li>Registro, edición y eliminación de comités en cualquier estado</li>
+      <li>Dashboard con estadísticas nacionales</li>
+      <li>Estadística del Estado (completa)</li>
+      <li>Cargar Comités desde CSV</li>
+      <li>Administración de usuarios (CRUD completo)</li>
+      <li>Auditoría con bitácora exportable</li>
+      <li>Botón "Borrar todo" en Historial de Actas</li>
+    </ul>
+  </div>
+
+  <!-- 4.2 TERRITORIAL -->
+  <div id="rol-terri">
+    <h3>4.2 Territorial</h3>
+    <ul>
+      <li>Puede registrar comités en <strong>cualquier estado</strong></li>
+      <li>Puede editar y eliminar comités solo en sus estados asignados</li>
+      <li>Acceso a Dashboard y Estadística del Estado</li>
+      <li>No tiene acceso a Administración de usuarios ni Cargar Comités</li>
+    </ul>
+  </div>
+
+  <!-- 4.3 COORDINADOR -->
+  <div id="rol-coord">
+    <h3>4.3 Coordinador</h3>
+    <ul>
+      <li>Solo puede registrar comités en <strong>su estado asignado</strong> (1 estado)</li>
+      <li>Puede editar comités y campos de integrantes, pero <strong>no puede eliminar integrantes</strong></li>
+      <li>Acceso a Consulta de Comités</li>
+      <li><strong>Sin acceso</strong> a Dashboard, Estadísticas ni Administración</li>
+    </ul>
+  </div>
+
+  <!-- 4.4 PROMOTOR -->
+  <div id="rol-promo">
+    <h3>4.4 Promotor</h3>
+    <ul>
+      <li>Solo puede registrar comités en <strong>su estado asignado</strong> (1 estado)</li>
+      <li>Solo ve y descarga actas que él mismo registró</li>
+      <li><strong>Sin acceso</strong> a Consulta, Dashboard, Estadísticas, Cargar Comités ni Administración</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ========== 5. MÓDULOS ========== -->
+<div class="page page-break" id="modulos">
+  <h2>5. Módulos del Sistema</h2>
+
+  <!-- 5.1 REGISTRO -->
+  <div id="mod-registro">
+    <h3>5.1 Registro de Comité</h3>
+    <p>Formulario completo para registrar un nuevo comité.</p>
+    <h4>Campos del formulario</h4>
+    <ul>
+      <li><strong>Estado y Municipio:</strong> selección geográfica del comité</li>
+      <li><strong>Fecha de protesta:</strong> fecha de toma de protesta</li>
+      <li><strong>Eje temático:</strong> eje principal del comité</li>
+      <li><strong>Ruta de articulación:</strong> Educativo o Territorial</li>
+      <li><strong>Fotografía:</strong> foto del comité (opcional, se comprime automáticamente)</li>
+      <li><strong>Integrantes:</strong> mínimo 5, cada uno con cargo, nombre, sexo, edad, municipio, teléfono, email y población vulnerable</li>
+    </ul>
+    <p>Al guardar, el sistema genera automáticamente un <strong>folio único</strong> y un <strong>PDF del acta</strong> que puede descargarse.</p>
+    <div class="tip">Para roles con 1 estado asignado (coordinador, promotor), el estado se preselecciona automáticamente.</div>
+  </div>
+
+  <!-- 5.2 HISTORIAL -->
+  <div id="mod-historial">
+    <h3>5.2 Historial de Actas</h3>
+    <p>Lista de todas las actas registradas con opciones de:</p>
+    <ul>
+      <li><strong>Filtros:</strong> por estado y texto de búsqueda</li>
+      <li><strong>Vista previa:</strong> previsualización del acta sin descargar</li>
+      <li><strong>Descarga individual:</strong> descarga el PDF de un acta específica</li>
+      <li><strong>Descarga masiva:</strong> descarga múltiples actas en un archivo ZIP</li>
+      <li><strong>Eliminar:</strong> solo visible para administrador y territorial (en sus estados)</li>
+      <li><strong>Borrar todo:</strong> solo visible para administrador, con doble confirmación + contraseña "CONTRASEÑA"</li>
+    </ul>
+  </div>
+
+  <!-- 5.3 CONSULTA -->
+  <div id="mod-consulta">
+    <h3>5.3 Consulta de Comités</h3>
+    <p>Tabla con todos los comités registrados. Permite:</p>
+    <ul>
+      <li><strong>Editar inline:</strong> modificar datos del comité e integrantes directamente en la página (sin modal overlay)</li>
+      <li><strong>Filtros:</strong> por estado, folio, nombre del comité</li>
+    </ul>
+  </div>
+
+  <!-- 5.4 DASHBOARD -->
+  <div id="mod-dashboard">
+    <h3>5.4 Dashboard</h3>
+    <p>Panel de estadísticas con:</p>
+    <ul>
+      <li><strong>KPIs:</strong> Comités registrados, Integrantes totales, Estados activos, Promedio de integrantes</li>
+      <li><strong>Mapa de México:</strong> calor por estado + desglose numérico en grid 4 columnas</li>
+      <li><strong>Top 10 estados:</strong> ranking con barras de progreso</li>
+      <li><strong>Registros por mes:</strong> gráfica de área (totales mensuales) + línea negra (promedio por día)</li>
+      <li><strong>Distribución por edad:</strong> gráfica de área por rango etario</li>
+      <li><strong>Distribución por sexo:</strong> gráfico de dona (Mujeres / Hombres)</li>
+      <li><strong>Tamaño de comités:</strong> barras por rango de integrantes</li>
+      <li><strong>Ejes Temáticos:</strong> barras por eje</li>
+      <li><strong>Ruta de Articulación:</strong> tarjeta separada</li>
+    </ul>
+  </div>
+
+  <!-- 5.5 ESTADÍSTICAS -->
+  <div id="mod-estadisticas">
+    <h3>5.5 Estadística del Estado</h3>
+    <p>Edición de datos estadísticos por estado: población joven, municipios, partido gobernante, matrícula educativa y participación en jornadas.</p>
+  </div>
+
+  <!-- 5.6 CARGAR -->
+  <div id="mod-cargar">
+    <h3>5.6 Cargar Comités</h3>
+    <p>Importación masiva de comités desde archivo CSV. Cada fila representa un integrante; los integrantes se agrupan automáticamente por nombre del comité. Mínimo 5 integrantes por grupo.</p>
+    <p>Ver sección <a href="#csv">Importación CSV</a> para el formato detallado.</p>
+  </div>
+
+  <!-- 5.7 ADMIN -->
+  <div id="mod-admin">
+    <h3>5.7 Administración</h3>
+    <p>Panel con dos subpestañas:</p>
+    <ul>
+      <li><strong>Usuarios:</strong> CRUD completo de usuarios del sistema, importación desde CSV y descarga de plantilla</li>
+      <li><strong>Auditoría:</strong> bitácora de todas las acciones realizadas, con filtros y exportación a CSV ("Descargar Bitácora")</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ========== 6. IMPORTACIÓN CSV ========== -->
+<div class="page page-break" id="csv">
+  <h2>6. Importación CSV de Comités</h2>
+  <p>Formato del archivo CSV para importar comités desde <strong>Cargar Comités</strong>.</p>
+
+  <h3>Estructura del CSV</h3>
+  <p>Cada fila representa <strong>un integrante</strong>. Los integrantes con el mismo <code>NOMBRE_COMITE</code> se agrupan en un mismo comité. Se requieren mínimo 5 integrantes por grupo.</p>
+
+  <pre>ESTADO,MUNICIPIO,NOMBRE_COMITE,FECHA_PROTESTA,EJE_TEMATICO,RUTA_ARTICULACION,CARGO,NOMBRE_INTEGRANTE,SEXO,EDAD,MUNICIPIO_INTEGRANTE,TELEFONO,EMAIL,POBLACION_VULNERABLE
+JALISCO,GUADALAJARA,Comite Juvenil Jalisco,2026-05-15,EDUCACION,EDUCATIVO,PRESIDENTE,Juan Pérez,H,25,GUADALAJARA,3312345678,juan@email.com,""
+JALISCO,GUADALAJARA,Comite Juvenil Jalisco,2026-05-15,EDUCACION,EDUCATIVO,SECRETARIO,María García,M,23,GUADALAJARA,3312345679,maria@email.com,""
+JALISCO,GUADALAJARA,Comite Juvenil Jalisco,2026-05-15,EDUCACION,EDUCATIVO,TESORERO,Carlos López,H,24,ZAPOPAN,3312345680,carlos@email.com,"INDIGENA"
+...</pre>
+
+  <h3>Columnas requeridas</h3>
+  <table>
+    <tr><th>Columna</th><th>Descripción</th></tr>
+    <tr><td>ESTADO</td><td>Nombre del estado (se normaliza automáticamente)</td></tr>
+    <tr><td>MUNICIPIO</td><td>Municipio del comité</td></tr>
+    <tr><td>NOMBRE_COMITE</td><td>Nombre del comité (agrupa integrantes)</td></tr>
+    <tr><td>FECHA_PROTESTA</td><td>Fecha en formato YYYY-MM-DD</td></tr>
+    <tr><td>EJE_TEMATICO</td><td>Eje temático del comité</td></tr>
+    <tr><td>RUTA_ARTICULACION</td><td>EDUCATIVO o TERRITORIAL</td></tr>
+    <tr><td>CARGO</td><td>PRESIDENTE, SECRETARIO, TESORERO, VOCAL, etc.</td></tr>
+    <tr><td>NOMBRE_INTEGRANTE</td><td>Nombre completo del integrante</td></tr>
+    <tr><td>SEXO</td><td>H (Hombre) o M (Mujer)</td></tr>
+    <tr><td>EDAD</td><td>Edad en años (12 a 29)</td></tr>
+    <tr><td>MUNICIPIO_INTEGRANTE</td><td>Municipio de residencia del integrante</td></tr>
+    <tr><td>TELEFONO</td><td>Teléfono de contacto</td></tr>
+    <tr><td>EMAIL</td><td>Correo electrónico</td></tr>
+    <tr><td>POBLACION_VULNERABLE</td><td>Opcional. Separar múltiples con coma</td></tr>
+  </table>
+</div>
+
+<!-- ========== 7. GESTIÓN DE USUARIOS ========== -->
+<div class="page page-break" id="usuarios-crud">
+  <h2>7. Gestión de Usuarios</h2>
+  <p>Accesible desde el menú <strong>Usuarios</strong> (solo administradores).</p>
+
+  <h3>Crear usuario</h3>
+  <ol>
+    <li>Hacer clic en <strong>"+ Nuevo usuario"</strong></li>
+    <li>Completar: nombre de usuario, contraseña, nombre completo, rol y estados asignados</li>
+    <li>Hacer clic en <strong>"Guardar"</strong></li>
+  </ol>
+
+  <h3>Editar usuario</h3>
+  <ol>
+    <li>Hacer clic en el icono de lápiz junto al usuario</li>
+    <li>Modificar los campos necesarios</li>
+    <li>Hacer clic en <strong>"Guardar"</strong></li>
+  </ol>
+
+  <h3>Eliminar usuario</h3>
+  <ol>
+    <li>Hacer clic en el icono de papelera junto al usuario</li>
+    <li>Confirmar la eliminación en el diálogo</li>
+  </ol>
+
+  <h3>Importar usuarios desde CSV</h3>
+  <ol>
+    <li>Descargar la plantilla con el botón <strong>"Descargar Plantilla"</strong></li>
+    <li>La plantilla incluye ejemplos de los 4 roles</li>
+    <li>Completar el archivo y usar <strong>"Importar CSV"</strong></li>
+  </ol>
+  <p>Formato de la plantilla:</p>
+  <pre>username,password,role,full_name,assigned_states
+ADMIN_M,0000,administrador,María López,[]
+TERRI_E,0000,territorial,Eduardo Cruz,"[""JALISCO"",""NAYARIT""]"
+COORD_N,0000,coordinador,Nancy Ríos,"[""NUEVO LEON""]"
+PROMO_X,0000,promotor,Ximena Paz,"[""VERACRUZ""]"</pre>
+</div>
+
+<!-- ========== 8. AUDITORÍA ========== -->
+<div class="page page-break" id="auditoria">
+  <h2>8. Auditoría</h2>
+  <p>El sistema registra automáticamente cada acción relevante en la bitácora de auditoría:</p>
+  <ul>
+    <li>Creación, edición y eliminación de comités</li>
+    <li>Inicio de sesión de usuarios</li>
+    <li>Creación, edición y eliminación de usuarios</li>
+    <li>Acciones masivas (Borrar todo, importar CSV)</li>
+  </ul>
+  <p>Para exportar la bitácora, usar el botón <strong>"Descargar Bitácora"</strong> en la pestaña Auditoría del panel de Administración.</p>
+</div>
+
+<!-- ========== 9. BASE DE DATOS ========== -->
+<div class="page page-break" id="base-datos">
+  <h2>9. Base de Datos</h2>
+  <p>El sistema utiliza <strong>SQLite</strong> como motor de base de datos. El archivo se encuentra en:</p>
+  <pre>server/data/imjuve.db</pre>
+
+  <h3>Estructura de tablas</h3>
+  <p>Las tablas se crean automáticamente al iniciar el servidor por primera vez:</p>
+  <ul>
+    <li><strong>users</strong> — Usuarios del sistema (id, username, password_hash, role, assigned_states, full_name)</li>
+    <li><strong>comites</strong> — Comités registrados (folio, estado, municipio, fecha_protesta, etc.)</li>
+    <li><strong>integrantes</strong> — Integrantes de cada comité</li>
+    <li><strong>audit_log</strong> — Bitácora de acciones</li>
+    <li><strong>estado_estadisticas</strong> — Datos estadísticos por estado</li>
+  </ul>
+
+  <h3>Precargar datos de prueba</h3>
+  <p>Para insertar 8 usuarios de prueba y 32 comités de ejemplo:</p>
+  <pre>cd server
+npx tsx src/seed.ts</pre>
+
+  <h3>Empezar desde cero</h3>
+  <p>Eliminar el archivo <code>server/data/imjuve.db</code> y reiniciar el servidor. Las tablas se recrearán automáticamente.</p>
+
+  <div class="warn">Eliminar la base de datos borrará permanentemente todos los registros. Haga una copia de seguridad antes.</div>
+</div>
+
+<!-- ========== 10. DESPLIEGUE ========== -->
+<div class="page page-break" id="despliegue">
+  <h2>10. Despliegue en Producción</h2>
+
+  <!-- 10.1 VPS -->
+  <div id="deploy-vps">
+    <h3>10.1 Servidor VPS con Nginx</h3>
+
+    <h4>Paso 1: Preparar el servidor</h4>
+    <pre>sudo apt update && sudo apt upgrade -y
+sudo apt install nginx nodejs npm -y
+node -v  # Debe mostrar v18+</pre>
+
+    <h4>Paso 2: Copiar la aplicación</h4>
+    <pre>scp -r PlataformaComites usuario@tu-servidor:/home/usuario/
+# o clonar desde git
+git clone https://tu-repo.com/plataforma-comites.git
+cd PlataformaComites</pre>
+
+    <h4>Paso 3: Construir el frontend</h4>
+    <pre>cd client
+npm install
+npx vite build
+cd ..</pre>
+
+    <h4>Paso 4: Inicializar base de datos</h4>
+    <pre>cd server
+npm install
+npx tsx src/seed.ts  # Datos de prueba (saltar si producción real)</pre>
+
+    <h4>Paso 5: Instalar PM2 y arrancar</h4>
+    <pre>sudo npm install -g pm2
+pm2 start --name imjuve --interpreter tsx src/index.ts
+pm2 save
+sudo pm2 startup  # Arranque automático al reiniciar</pre>
+
+    <h4>Paso 6: Configurar Nginx</h4>
+    <pre>sudo nano /etc/nginx/sites-available/imjuve</pre>
+    <p>Agregar:</p>
+    <pre>server {
+    listen 80;
+    server_name tu-dominio.com;
+
+    client_max_body_size 50M;
+
+    location / {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}</pre>
+    <pre>sudo ln -s /etc/nginx/sites-available/imjuve /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx</pre>
+  </div>
+
+  <!-- 10.2 PAAS -->
+  <div id="deploy-paas">
+    <h3>10.2 Plataforma como Servicio (Railway, Render, Fly.io)</h3>
+    <p>Ejemplo con <strong>Railway</strong>:</p>
+    <ol>
+      <li>Crear cuenta en <a href="https://railway.app">railway.app</a></li>
+      <li>Conectar repositorio de GitHub o subir archivos</li>
+      <li>En <strong>Settings → Deploy</strong> configurar:</li>
+      <li><strong>Build Command:</strong> <code>cd client && npm install && npx vite build && cd ../server && npm install</code></li>
+      <li><strong>Start Command:</strong> <code>cd server && npx tsx src/index.ts</code></li>
+      <li><strong>Root Directory:</strong> dejar vacío</li>
+      <li>Agregar variable de entorno: <code>JWT_SECRET=clave-secreta-aleatoria</code></li>
+      <li>Hacer clic en <strong>Deploy</strong></li>
+    </ol>
+  </div>
+
+  <!-- 10.3 SSL -->
+  <div id="deploy-ssl">
+    <h3>10.3 Configurar SSL (HTTPS)</h3>
+    <p>Con Certbot y Let's Encrypt:</p>
+    <pre>sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d tu-dominio.com</pre>
+    <p>Certbot modificará automáticamente la configuración de Nginx para usar HTTPS.</p>
+    <p>Para renovación automática:</p>
+    <pre>sudo certbot renew --dry-run</pre>
+  </div>
+</div>
+
+<!-- ========== 11. SOLUCIÓN DE PROBLEMAS ========== -->
+<div class="page page-break" id="solucion">
+  <h2>11. Solución de Problemas</h2>
+
+  <h3>El servidor no arranca</h3>
+  <table>
+    <tr><th>Problema</th><th>Solución</th></tr>
+    <tr><td>Puerto 3001 en uso</td><td>Cambiar puerto: <code>PORT=3002 npx tsx src/index.ts</code></td></tr>
+    <tr><td>"No se puede cargar el archivo" en PowerShell</td><td>Ejecutar: <code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</code></td></tr>
+    <tr><td>Error de módulo no encontrado</td><td>Ejecutar: <code>cd server && npm install</code></td></tr>
+  </table>
+
+  <h3>La página no carga en el navegador</h3>
+  <table>
+    <tr><th>Problema</th><th>Solución</th></tr>
+    <tr><td>Puerto incorrecto</td><td>Abrir http://localhost:3001 (no 5173 ni 5174)</td></tr>
+    <tr><td>Cache del navegador</td><td>Ctrl+Shift+R (recarga forzada) o limpiar caché</td></tr>
+    <tr><td>Firewall bloquea</td><td>Permitir Node.js en el firewall o usar <code>127.0.0.1:3001</code></td></tr>
+  </table>
+
+  <h3>Error al iniciar sesión</h3>
+  <table>
+    <tr><th>Error</th><th>Solución</th></tr>
+    <tr><td>"Usuario o contraseña incorrectos"</td><td>Verificar que el usuario existe (ejecutar seed si es necesario)</td></tr>
+    <tr><td>Token inválido</td><td>Cerrar sesión y volver a iniciar, o recargar la página</td></tr>
+  </table>
+
+  <h3>Problemas con roles</h3>
+  <table>
+    <tr><th>Síntoma</th><th>Solución</th></tr>
+    <tr><td>Un usuario no ve las opciones de su rol</td><td>Recargar página (Ctrl+Shift+R) para refrescar la sesión</td></tr>
+    <tr><td>El rol aparece como "admin" en vez de "administrador"</td><td>Reiniciar el servidor (la migración DB actualiza roles antiguos)</td></tr>
+    <tr><td>El coordinador puede eliminar integrantes</td><td>Verificar que el servidor esté actualizado (versión con validación de count)</td></tr>
+  </table>
+
+  <h3>Error al generar PDF de acta</h3>
+  <ul>
+    <li>Verificar que el navegador tenga permisos para popups</li>
+    <li>Si la imagen de fondo no se renderiza, usar Chrome o Edge</li>
+  </ul>
+
+  <h3>La base de datos se corrompió</h3>
+  <ol>
+    <li>Detener el servidor</li>
+    <li>Renombrar <code>server/data/imjuve.db</code> a <code>imjuve.db.bak</code></li>
+    <li>Reiniciar el servidor (creará una DB nueva)</li>
+    <li>Ejecutar <code>npx tsx src/seed.ts</code> si se necesitan datos de prueba</li>
+  </ol>
+
+  <div class="note">
+    <strong>Nota:</strong> Para reportar errores o solicitar soporte técnico, contactar al área de sistemas de IMJUVE.
+  </div>
+</div>
+
+</body>
+</html>
