@@ -31,6 +31,23 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+// ── Diagnóstico para Render ──
+app.get('/__debug', (_req, res) => {
+  const candidates = [
+    path.resolve(__dirname, '..', '..', 'client', 'dist'),
+    path.resolve(process.cwd(), '..', 'client', 'dist'),
+    path.resolve(process.cwd(), 'client', 'dist'),
+    path.join(process.cwd(), '..', 'client', 'dist'),
+  ];
+  const checks = candidates.map(p => ({
+    path: p,
+    exists: fs.existsSync(p),
+    isDir: fs.existsSync(p) ? fs.lstatSync(p).isDirectory() : false,
+    files: fs.existsSync(p) && fs.lstatSync(p).isDirectory() ? fs.readdirSync(p).slice(0, 30) : [],
+  }));
+  res.json({ cwd: process.cwd(), dirname: __dirname, checks });
+});
+
 // ── Servir cliente estático en producción ──
 const possiblePaths = [
   path.resolve(__dirname, '..', '..', 'client', 'dist'),
