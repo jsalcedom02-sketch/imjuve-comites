@@ -8,6 +8,10 @@ import { normalizeEstado } from '../utils/estados';
 const router = Router();
 router.use(authMiddleware);
 
+function asyncWrap(fn: (req: AuthRequest, res: Response) => Promise<void>) {
+  return (req: AuthRequest, res: Response, next: any) => fn(req, res).catch(next);
+}
+
 // Helpers
 function canRegisterAnyState(role: string) { return role === 'administrador' || role === 'territorial'; }
 function canEdit(role: string) { return ['administrador', 'territorial', 'coordinador'].includes(role); }
@@ -48,20 +52,21 @@ function rowToRecord(row: any, integrantes: any[]): any {
   };
 }
 
-router.get('/', (req: AuthRequest, res: Response) => {
+router.get('/', asyncWrap(async (req: AuthRequest, res: Response) => {
   const filter = assignedStatesFilter(req);
-  const rows = queryAll(`SELECT * FROM comites WHERE ${filter.clause} ORDER BY fecha_registro DESC`, filter.params);
+  const rows = await queryAll(`SELECT * FROM comites WHERE ${filter.clause} ORDER BY fecha_registro DESC`, filter.params);
 
-  const records = rows.map((row) => {
-    const integrantes = queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: row.id });
-    return rowToRecord(row, integrantes);
-  });
+  const records = [];
+  for (const row of rows) {
+    const integrantes = await queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: row.id });
+    records.push(rowToRecord(row, integrantes));
+  }
 
   res.json({ records });
-});
+}));
 
-router.get('/:id', (req: AuthRequest, res: Response) => {
-  const row = queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id });
+router.get('/:id', asyncWrap(async (req: AuthRequest, res: Response) => {
+  const row = await queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id });
   if (!row) { res.status(404).json({ error: 'No encontrado' }); return; }
 
   if (!isInAssignedState(req.role!, req.assignedStates || [], row.estado)) {
@@ -69,17 +74,16 @@ router.get('/:id', (req: AuthRequest, res: Response) => {
     return;
   }
 
-  // Promotor can only see their own records
   if (req.role === 'promotor' && row.user_id !== req.userId) {
     res.status(403).json({ error: 'No tienes permiso para ver este registro' });
     return;
   }
 
-  const integrantes = queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: row.id });
+  const integrantes = await queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: row.id });
   res.json({ record: rowToRecord(row, integrantes) });
-});
+}));
 
-router.post('/', (req: AuthRequest, res: Response) => {
+router.post('/', asyncWrap(async (req: AuthRequest, res: Response) => {
   const {
     fechaProtesta, rutaArticulacion, estado, lugarIntervencion,
     nombreComite, tiktok, instagram, integrantes, ejesTematicos,
@@ -87,39 +91,36 @@ router.post('/', (req: AuthRequest, res: Response) => {
   } = req.body;
 
   if (!fechaProtesta || !rutaArticulacion || !estado || !lugarIntervencion || !nombreComite) {
-    res.status(400).json({ error: 'Campos requeridos faltantes' });
-    return;
+    res.status(400).json({ error: 'Campos requeridos faltantes' }); return;
   }
 
   if (!integrantes || integrantes.length < 5) {
-    res.status(400).json({ error: 'Mínimo 5 integrantes' });
-    return;
+    res.status(400).json({ error: 'Mínimo 5 integrantes' }); return;
   }
 
   const estadoKey = normalizeEstado(estado);
 
-  // Territorial can register in any state; others only their assigned states
   if (!canRegisterAnyState(req.role!)) {
     const allowed = req.assignedStates || [];
     if (!allowed.includes(estadoKey)) {
-      res.status(403).json({ error: 'No tienes permiso para registrar en este estado' });
-      return;
+      res.status(403).json({ error: 'No tienes permiso para registrar en este estado' }); return;
     }
   }
 
   const id = uuid();
 
-  const counter = queryOne('SELECT last_number FROM folio_counters WHERE estado = $est', { $est: estadoKey });
+  const counter = await queryOne('SELECT last_number FROM folio_counters WHERE estado = $est', { $est: estadoKey });
   const nextNum = counter ? counter.last_number + 1 : 1;
 
-  execute('INSERT OR REPLACE INTO folio_counters (estado, last_number) VALUES ($est, $num)', {
-    $est: estadoKey, $num: nextNum,
-  });
+  await execute(
+    'INSERT INTO folio_counters (estado, last_number) VALUES ($est, $num) ON CONFLICT (estado) DO UPDATE SET last_number = $num',
+    { $est: estadoKey, $num: nextNum },
+  );
 
   const folio = generateFolio(estado, lugarIntervencion, rutaArticulacion, nextNum);
   const fechaRegistro = new Date().toISOString();
 
-  execute(`
+  await execute(`
     INSERT INTO comites (id, folio, fecha_protesta, ruta_articulacion, estado, lugar_intervencion,
       nombre_comite, tiktok, instagram, ejes_tematicos, actividades, evidencia_fotografica,
       observaciones, fecha_registro, user_id)
@@ -137,7 +138,7 @@ router.post('/', (req: AuthRequest, res: Response) => {
     const int = integrantes[i];
     const cargo = cargos[i] || 'INTEGRANTE';
     const pv = (int.poblacionVulnerable || []).join(';');
-    execute(`
+    await execute(`
       INSERT INTO integrantes (id, comite_id, cargo, nombre, sexo, edad, municipio, telefono, email, poblacion_vulnerable)
       VALUES ($id, $comite, $cargo, $nombre, $sexo, $edad, $mun, $tel, $email, $pv)
     `, {
@@ -147,47 +148,43 @@ router.post('/', (req: AuthRequest, res: Response) => {
     });
   }
 
-  const saved = queryOne('SELECT * FROM comites WHERE id = $id', { $id: id })!;
-  const savedInts = queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: id });
+  const saved = await queryOne('SELECT * FROM comites WHERE id = $id', { $id: id })!;
+  const savedInts = await queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: id });
 
-  logAudit(req.userId!, req.username!, 'crear', 'comite', id, `Folio: ${folio}, Estado: ${estadoKey}`);
+  await logAudit(req.userId!, req.username!, 'crear', 'comite', id, `Folio: ${folio}, Estado: ${estadoKey}`);
 
   res.status(201).json({ record: rowToRecord(saved, savedInts) });
-});
+}));
 
-router.put('/:id', (req: AuthRequest, res: Response) => {
-  const existing = queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id });
+router.put('/:id', asyncWrap(async (req: AuthRequest, res: Response) => {
+  const existing = await queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id });
   if (!existing) { res.status(404).json({ error: 'No encontrado' }); return; }
 
   if (!canEdit(req.role!)) {
-    res.status(403).json({ error: 'No tienes permiso para editar actas' });
-    return;
+    res.status(403).json({ error: 'No tienes permiso para editar actas' }); return;
   }
 
   if (!isInAssignedState(req.role!, req.assignedStates || [], existing.estado)) {
-    res.status(403).json({ error: 'No tienes permiso para editar este registro' });
-    return;
+    res.status(403).json({ error: 'No tienes permiso para editar este registro' }); return;
   }
 
   const { integrantes, evidenciaFotografica } = req.body;
 
-  // Coordinador no puede eliminar integrantes (sí puede editar sus campos)
   if (req.role === 'coordinador' && integrantes) {
-    const oldCount = queryOne('SELECT COUNT(*) as cnt FROM integrantes WHERE comite_id = $id', { $id: req.params.id })?.cnt || 0;
+    const oldCount = (await queryOne('SELECT COUNT(*) as cnt FROM integrantes WHERE comite_id = $id', { $id: req.params.id }))?.cnt || 0;
     if (integrantes.length < oldCount) {
-      res.status(403).json({ error: 'No tienes permiso para eliminar integrantes' });
-      return;
+      res.status(403).json({ error: 'No tienes permiso para eliminar integrantes' }); return;
     }
   }
 
   if (integrantes) {
-    execute('DELETE FROM integrantes WHERE comite_id = $id', { $id: req.params.id });
+    await execute('DELETE FROM integrantes WHERE comite_id = $id', { $id: req.params.id });
     const cargos = ['COORDINACIÓN', 'SECRETARÍA', 'VOCERÍA'];
     for (let i = 0; i < integrantes.length; i++) {
       const int = integrantes[i];
       const cargo = cargos[i] || 'INTEGRANTE';
       const pv = (int.poblacionVulnerable || []).join(';');
-      execute(`
+      await execute(`
         INSERT INTO integrantes (id, comite_id, cargo, nombre, sexo, edad, municipio, telefono, email, poblacion_vulnerable)
         VALUES ($id, $comite, $cargo, $nombre, $sexo, $edad, $mun, $tel, $email, $pv)
       `, {
@@ -199,50 +196,49 @@ router.put('/:id', (req: AuthRequest, res: Response) => {
   }
 
   if (evidenciaFotografica !== undefined) {
-    execute('UPDATE comites SET evidencia_fotografica = $foto WHERE id = $id', {
+    await execute('UPDATE comites SET evidencia_fotografica = $foto WHERE id = $id', {
       $foto: evidenciaFotografica, $id: req.params.id,
     });
   }
 
-  const updated = queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id })!;
-  const updatedInts = queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: req.params.id });
+  const updated = await queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id })!;
+  const updatedInts = await queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: req.params.id });
 
-  logAudit(req.userId!, req.username!, 'editar', 'comite', req.params.id, `Folio: ${updated.folio}`);
+  await logAudit(req.userId!, req.username!, 'editar', 'comite', req.params.id, `Folio: ${updated.folio}`);
 
   res.json({ record: rowToRecord(updated, updatedInts) });
-});
+}));
 
-router.delete('/all', authMiddleware, requireRole('administrador'), (req: AuthRequest, res: Response) => {
-  const count = queryAll('SELECT COUNT(*) as total FROM comites')[0]?.total || 0;
+router.delete('/all', authMiddleware, requireRole('administrador'), asyncWrap(async (req: AuthRequest, res: Response) => {
+  const rows = await queryAll('SELECT COUNT(*) as total FROM comites');
+  const count = rows[0]?.total || 0;
 
-  execute('DELETE FROM integrantes');
-  execute('DELETE FROM comites');
-  execute('DELETE FROM folio_counters');
+  await execute('DELETE FROM integrantes');
+  await execute('DELETE FROM comites');
+  await execute('DELETE FROM folio_counters');
 
-  logAudit(req.userId!, req.username!, 'eliminar_todo', 'comite', '', `${count} comités eliminados`);
+  await logAudit(req.userId!, req.username!, 'eliminar_todo', 'comite', '', `${count} comités eliminados`);
 
   res.json({ message: `Todos los comités eliminados (${count})` });
-});
+}));
 
-router.delete('/:id', (req: AuthRequest, res: Response) => {
-  const existing = queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id });
+router.delete('/:id', asyncWrap(async (req: AuthRequest, res: Response) => {
+  const existing = await queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id });
   if (!existing) { res.status(404).json({ error: 'No encontrado' }); return; }
 
   if (!canDelete(req.role!)) {
-    res.status(403).json({ error: 'No tienes permiso para eliminar actas' });
-    return;
+    res.status(403).json({ error: 'No tienes permiso para eliminar actas' }); return;
   }
 
   if (!isInAssignedState(req.role!, req.assignedStates || [], existing.estado)) {
-    res.status(403).json({ error: 'No tienes permiso para eliminar este registro' });
-    return;
+    res.status(403).json({ error: 'No tienes permiso para eliminar este registro' }); return;
   }
 
-  execute('DELETE FROM comites WHERE id = $id', { $id: req.params.id });
+  await execute('DELETE FROM comites WHERE id = $id', { $id: req.params.id });
 
-  logAudit(req.userId!, req.username!, 'eliminar', 'comite', req.params.id, `Folio: ${existing.folio}`);
+  await logAudit(req.userId!, req.username!, 'eliminar', 'comite', req.params.id, `Folio: ${existing.folio}`);
 
   res.json({ message: 'Eliminado', folio: existing.folio });
-});
+}));
 
 export default router;

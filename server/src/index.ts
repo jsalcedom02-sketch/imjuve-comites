@@ -31,38 +31,15 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// ── Diagnóstico para Render ──
-app.get('/__debug', (_req, res) => {
-  const candidates = [
-    path.resolve(__dirname, '..', '..', 'client', 'dist'),
-    path.resolve(process.cwd(), '..', 'client', 'dist'),
-    path.resolve(process.cwd(), 'client', 'dist'),
-    path.join(process.cwd(), '..', 'client', 'dist'),
-  ];
-  const checks = candidates.map(p => ({
-    path: p,
-    exists: fs.existsSync(p),
-    isDir: fs.existsSync(p) ? fs.lstatSync(p).isDirectory() : false,
-    files: fs.existsSync(p) && fs.lstatSync(p).isDirectory() ? fs.readdirSync(p).slice(0, 30) : [],
-  }));
-  res.json({ cwd: process.cwd(), dirname: __dirname, checks });
+// ── Error handler ──
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('❌ Error:', err);
+  res.status(500).json({ error: err.message || 'Error interno del servidor' });
 });
 
 // ── Servir cliente estático en producción ──
-const possiblePaths = [
-  path.resolve(__dirname, '..', '..', 'client', 'dist'),
-  path.resolve(process.cwd(), '..', 'client', 'dist'),
-  path.resolve(process.cwd(), 'client', 'dist'),
-  path.join(process.cwd(), '..', 'client', 'dist'),
-];
-let clientDist = null;
-for (const p of possiblePaths) {
-  if (fs.existsSync(p)) {
-    clientDist = p;
-    break;
-  }
-}
-if (clientDist) {
+const clientDist = path.resolve(__dirname, '..', '..', 'client', 'dist');
+if (fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
@@ -70,14 +47,18 @@ if (clientDist) {
   console.log(`✅ Sirviendo frontend estático desde ${clientDist}`);
 } else {
   console.log('⚡ Modo desarrollo: no se encontró client/dist');
-  console.log(`   Buscado en: ${possiblePaths.join(', ')}`);
   console.log(`   __dirname: ${__dirname}`);
   console.log(`   cwd: ${process.cwd()}`);
 }
 
-initDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-    console.log(`📋 API: http://localhost:${PORT}/api`);
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`📋 API: http://localhost:${PORT}/api`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Error al conectar a PostgreSQL:', err);
+    process.exit(1);
   });
-});

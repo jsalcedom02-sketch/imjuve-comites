@@ -1,51 +1,16 @@
-import initSqlJs, { type SqlJsDatabase } from 'sql.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { v4 as uuid } from 'uuid';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, '..', 'data', 'imjuve.db');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/imjuve',
+});
 
-let db: SqlJsDatabase | null = null;
+export async function initDb(): Promise<void> {
+  const { rows } = await pool.query('SELECT NOW()');
+  console.log('✅ Conectado a PostgreSQL:', rows[0].now);
 
-export async function initDb(): Promise<SqlJsDatabase> {
-  if (db) return db;
-
-  const SQL = await initSqlJs();
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-
-  if (fs.existsSync(DB_PATH)) {
-    const buffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(buffer);
-  } else {
-    db = new SQL.Database();
-  }
-
-  db.run('PRAGMA foreign_keys = ON');
-  initSchema();
-  migrateDb();
-  // Migration: add assigned_states column if missing (existing databases)
-  try { db.run("ALTER TABLE users ADD COLUMN assigned_states TEXT DEFAULT '[]'"); } catch (_) { /* column already exists */ }
-  saveDb();
-  return db;
-}
-
-export function getDb(): SqlJsDatabase {
-  if (!db) throw new Error('Database not initialized. Call initDb() first.');
-  return db;
-}
-
-export function saveDb(): void {
-  if (!db) return;
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(DB_PATH, buffer);
-}
-
-function initSchema() {
-  if (!db) return;
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -53,7 +18,7 @@ function initSchema() {
       role TEXT NOT NULL DEFAULT 'administrador',
       assigned_states TEXT DEFAULT '[]',
       full_name TEXT DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS audit_log (
@@ -64,7 +29,7 @@ function initSchema() {
       entity TEXT NOT NULL,
       entity_id TEXT,
       details TEXT DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS folio_counters (
@@ -86,9 +51,9 @@ function initSchema() {
       actividades TEXT NOT NULL,
       evidencia_fotografica TEXT DEFAULT '',
       observaciones TEXT DEFAULT '',
-      fecha_registro TEXT NOT NULL DEFAULT (datetime('now')),
+      fecha_registro TIMESTAMP NOT NULL DEFAULT NOW(),
       user_id TEXT REFERENCES users(id),
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS integrantes (
@@ -120,51 +85,51 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id);
     CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);
   `);
+
+  await pool.query("UPDATE users SET role = 'administrador' WHERE role = 'admin'");
 }
 
-function migrateDb() {
-  if (!db) return;
-  try { db.run("ALTER TABLE users ADD COLUMN full_name TEXT DEFAULT ''"); } catch (_) {}
-  try { db.run("UPDATE users SET role = 'administrador' WHERE role = 'admin'"); } catch (_) {}
+export function getPool(): typeof pool {
+  return pool;
 }
-
-// ── Helper wrappers ──────────────────────────────────────
 
 type Row = Record<string, any>;
 
-export function logAudit(userId: string, username: string, action: string, entity: string, entityId?: string, details?: string) {
-  execute(
+function prepare(sql: string, params?: Record<string, any>): { text: string; values: any[] } {
+  if (!params) return { text: sql, values: [] };
+  const keys = Object.keys(params);
+  const values = keys.map(k => params[k]);
+  const text = sql.replace(/\$(\w+)/g, (_match, name) => {
+    const idx = keys.indexOf(`$${name}`);
+    if (idx === -1) return `$${name}`;
+    return `$${idx + 1}`;
+  });
+  return { text, values };
+}
+
+export async function queryAll(sql: string, params?: Record<string, any>): Promise<Row[]> {
+  const { text, values } = prepare(sql, params);
+  const result = await pool.query(text, values);
+  return result.rows;
+}
+
+export async function queryOne(sql: string, params?: Record<string, any>): Promise<Row | null> {
+  const rows = await queryAll(sql, params);
+  return rows.length > 0 ? rows[0] : null;
+}
+
+export async function execute(sql: string, params?: Record<string, any>): Promise<void> {
+  const { text, values } = prepare(sql, params);
+  await pool.query(text, values);
+}
+
+export async function logAudit(userId: string, username: string, action: string, entity: string, entityId?: string, details?: string) {
+  await execute(
     'INSERT INTO audit_log (id, user_id, username, action, entity, entity_id, details) VALUES ($id, $uid, $u, $a, $e, $eid, $d)',
     { $id: uuid(), $uid: userId, $u: username, $a: action, $e: entity, $eid: entityId || '', $d: details || '' },
   );
 }
 
-export function queryAll(sql: string, params?: Record<string, any>): Row[] {
-  const d = getDb();
-  const stmt = d.prepare(sql);
-  if (params) stmt.bind(params);
-  const rows: Row[] = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
-  }
-  stmt.free();
-  return rows;
-}
-
-export function queryOne(sql: string, params?: Record<string, any>): Row | null {
-  const rows = queryAll(sql, params);
-  return rows.length > 0 ? rows[0] : null;
-}
-
-export function execute(sql: string, params?: Record<string, any>): void {
-  const d = getDb();
-  if (params) {
-    const stmt = d.prepare(sql);
-    stmt.bind(params);
-    stmt.step();
-    stmt.free();
-  } else {
-    d.run(sql);
-  }
-  saveDb();
+export async function closePool(): Promise<void> {
+  await pool.end();
 }

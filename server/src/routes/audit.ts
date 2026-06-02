@@ -6,7 +6,11 @@ const router = Router();
 router.use(authMiddleware);
 router.use(requireRole('administrador'));
 
-router.get('/', (req: AuthRequest, res: Response) => {
+function asyncWrap(fn: (req: AuthRequest, res: Response) => Promise<void>) {
+  return (req: AuthRequest, res: Response, next: any) => fn(req, res).catch(next);
+}
+
+router.get('/', asyncWrap(async (req: AuthRequest, res: Response) => {
   const { limit = '200', offset = '0', action, entity, username } = req.query as Record<string, string>;
 
   let sql = 'SELECT * FROM audit_log WHERE 1=1';
@@ -14,14 +18,14 @@ router.get('/', (req: AuthRequest, res: Response) => {
 
   if (action) { sql += ' AND action = $action'; params.$action = action; }
   if (entity) { sql += ' AND entity = $entity'; params.$entity = entity; }
-  if (username) { sql += ' AND username LIKE $username'; params.$username = `%${username}%`; }
+  if (username) { sql += ' AND username ILIKE $username'; params.$username = `%${username}%`; }
 
   sql += ' ORDER BY created_at DESC LIMIT $limit OFFSET $offset';
   params.$limit = parseInt(limit) || 200;
   params.$offset = parseInt(offset) || 0;
 
-  const rows = queryAll(sql, params);
-  const total = queryOne('SELECT COUNT(*) as count FROM audit_log')?.count || 0;
+  const rows = await queryAll(sql, params);
+  const total = (await queryOne('SELECT COUNT(*) as count FROM audit_log'))?.count || 0;
 
   res.json({
     logs: rows.map((r: any) => ({
@@ -36,10 +40,10 @@ router.get('/', (req: AuthRequest, res: Response) => {
     })),
     total,
   });
-});
+}));
 
-router.get('/export', (_req: AuthRequest, res: Response) => {
-  const rows = queryAll('SELECT * FROM audit_log ORDER BY created_at DESC');
+router.get('/export', asyncWrap(async (_req: AuthRequest, res: Response) => {
+  const rows = await queryAll('SELECT * FROM audit_log ORDER BY created_at DESC');
 
   const header = 'ID,Usuario,Acción,Entidad,ID Entidad,Detalles,Fecha';
   const csvRows = rows.map((r: any) =>
@@ -50,6 +54,6 @@ router.get('/export', (_req: AuthRequest, res: Response) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename=audit_log.csv');
   res.send(csv);
-});
+}));
 
 export default router;
