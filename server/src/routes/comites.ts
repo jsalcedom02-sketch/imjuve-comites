@@ -204,7 +204,7 @@ router.put('/:id', asyncWrap(async (req: AuthRequest, res: Response) => {
   const updated = await queryOne('SELECT * FROM comites WHERE id = $id', { $id: req.params.id })!;
   const updatedInts = await queryAll('SELECT * FROM integrantes WHERE comite_id = $id', { $id: req.params.id });
 
-  await logAudit(req.userId!, req.username!, 'editar', 'comite', req.params.id, `Folio: ${updated.folio}`);
+  await logAudit(req.userId!, req.username!, 'editar', 'comite', req.params.id as string, `Folio: ${updated.folio}`);
 
   res.json({ record: rowToRecord(updated, updatedInts) });
 }));
@@ -236,7 +236,7 @@ router.delete('/:id', asyncWrap(async (req: AuthRequest, res: Response) => {
 
   await execute('DELETE FROM comites WHERE id = $id', { $id: req.params.id });
 
-  await logAudit(req.userId!, req.username!, 'eliminar', 'comite', req.params.id, `Folio: ${existing.folio}`);
+  await logAudit(req.userId!, req.username!, 'eliminar', 'comite', req.params.id as string, `Folio: ${existing.folio}`);
 
   res.json({ message: 'Eliminado', folio: existing.folio });
 }));
