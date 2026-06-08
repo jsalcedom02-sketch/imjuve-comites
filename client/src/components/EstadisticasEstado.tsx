@@ -86,6 +86,7 @@ const emptyRow = (estado: string): EstadoEstadisticas => ({
   matriculaSuperior: 0,
   matriculaMediaSuperior: 0,
   participacionJornadas: '',
+  metaComites: 0,
 });
 
 function extractPolyCoords(geom: any): number[][][][] {
@@ -319,6 +320,7 @@ export default function EstadisticasEstado() {
     { key: 'matriculaSuperior', label: 'Matrícula nivel superior', icon: GraduationCap, type: 'number' },
     { key: 'matriculaMediaSuperior', label: 'Matrícula media superior', icon: School, type: 'number' },
     { key: 'participacionJornadas', label: 'Participación en jornadas', icon: Trophy, type: 'text' },
+    { key: 'metaComites', label: 'Meta de comités', icon: MapPin, type: 'number' },
   ];
 
   const recordsCount = records.filter((r) => r.estado === filterEstado).length;
@@ -392,7 +394,7 @@ export default function EstadisticasEstado() {
 
                 {data ? (
                   <div style={{ borderTop: '1px solid #ece0e0' }} className="px-6 py-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {fields.map((f) => {
                         const val = data[f.key];
                         const display = f.type === 'number' ? (val as number).toLocaleString('es-MX') : val;

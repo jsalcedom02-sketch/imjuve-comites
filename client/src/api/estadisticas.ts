@@ -22,3 +22,16 @@ export async function deleteEstadistica(estado: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+export interface ResumenEstado {
+  estado: string;
+  poblacionJoven: number;
+  metaComites: number;
+  comitesActuales: number;
+  integrantesActuales: number;
+}
+
+export async function fetchResumen(): Promise<ResumenEstado[]> {
+  const data = await apiFetch<{ resumen: ResumenEstado[] }>('/estadisticas/resumen');
+  return data.resumen;
+}

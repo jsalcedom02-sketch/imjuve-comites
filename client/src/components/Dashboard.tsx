@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { useComiteStore } from '../store/comiteStore';
 import MexicoMap from './MexicoMap';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { fetchResumen, type ResumenEstado } from '../api/estadisticas';
 
 const BURG = '#6d0f22';
 const BRIGHT = '#9e1b35';
@@ -27,6 +28,11 @@ const RANK_SOFT = '#cd9ca4';
 export default function Dashboard() {
   const { records } = useComiteStore();
   const [filterEstado, setFilterEstado] = useState('');
+  const [resumen, setResumen] = useState<ResumenEstado[]>([]);
+
+  useEffect(() => {
+    fetchResumen().then(setResumen).catch(console.error);
+  }, []);
 
   const filteredRecords = filterEstado ? records.filter((r) => r.estado === filterEstado) : records;
   const estadosUnicosList = [...new Set(records.map((r) => r.estado))].sort();
@@ -240,6 +246,56 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Resumen por Estado */}
+      <section className="bg-white border rounded-[16px]" style={{ borderColor: '#ece0e0' }}>
+        <div className="flex items-center gap-[10px] px-[22px] pt-[18px]">
+          <span className="w-[30px] h-[30px] flex-none rounded-[9px] grid place-items-center" style={{ backgroundColor: S0, color: BURG }}>
+            <MapPin size={17} />
+          </span>
+          <h3 className="text-[15.5px] font-semibold" style={{ color: '#5e0b1e' }}>Resumen por estado — metas vs. reales</h3>
+          <span className="ml-auto text-[11.5px]" style={{ color: MUT }}>{resumen.length} estados</span>
+        </div>
+        <div className="px-[22px] pb-[22px] pt-[14px] overflow-x-auto">
+          <table className="w-full text-[13px]" style={{ fontFamily: "'Noto Sans', system-ui, sans-serif" }}>
+            <thead>
+              <tr className="text-left" style={{ color: MUT }}>
+                <th className="pb-2 pr-3 font-semibold">Estado</th>
+                <th className="pb-2 pr-3 font-semibold text-right">Población joven</th>
+                <th className="pb-2 pr-3 font-semibold text-right">Meta comités</th>
+                <th className="pb-2 pr-3 font-semibold text-right">Comités actuales</th>
+                <th className="pb-2 pr-3 font-semibold text-right">Avance</th>
+                <th className="pb-2 font-semibold text-right">Integrantes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resumen
+                .filter((r) => !filterEstado || r.estado === filterEstado)
+                .map((r) => {
+                  const avance = r.metaComites > 0 ? Math.min(Math.round(r.comitesActuales / r.metaComites * 100), 100) : 0;
+                  const barColor = avance >= 100 ? '#005e63' : avance >= 50 ? '#9e1b35' : '#ad8b91';
+                  return (
+                    <tr key={r.estado} style={{ borderBottom: '1px solid #ece0e0' }}>
+                      <td className="py-2.5 pr-3 font-medium" style={{ color: '#8a4a55' }}>{r.estado}</td>
+                      <td className="py-2.5 pr-3 text-right tabular-nums" style={{ color: '#5e0b1e' }}>{r.poblacionJoven > 0 ? r.poblacionJoven.toLocaleString('es-MX') : '—'}</td>
+                      <td className="py-2.5 pr-3 text-right tabular-nums" style={{ color: '#5e0b1e' }}>{r.metaComites > 0 ? r.metaComites : '—'}</td>
+                      <td className="py-2.5 pr-3 text-right tabular-nums font-semibold" style={{ color: r.comitesActuales >= r.metaComites && r.metaComites > 0 ? '#005e63' : '#8a4a55' }}>{r.comitesActuales}</td>
+                      <td className="py-2.5 pr-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-[7px] flex-1 rounded-[6px] overflow-hidden" style={{ backgroundColor: '#efe7da' }}>
+                            <i className="block h-full rounded-[6px]" style={{ width: `${avance}%`, backgroundColor: barColor }} />
+                          </div>
+                          <span className="text-[12px] font-bold tabular-nums min-w-[36px] text-right" style={{ color: barColor }}>{avance}%</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 text-right tabular-nums" style={{ color: '#5e0b1e' }}>{r.integrantesActuales > 0 ? r.integrantesActuales.toLocaleString('es-MX') : '—'}</td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
         </div>
       </section>
 

@@ -76,7 +76,8 @@ export async function initDb(): Promise<void> {
       partido_gobernante TEXT DEFAULT '',
       matricula_superior INTEGER DEFAULT 0,
       matricula_media_superior INTEGER DEFAULT 0,
-      participacion_jornadas TEXT DEFAULT ''
+      participacion_jornadas TEXT DEFAULT '',
+      meta_comites INTEGER DEFAULT 0
     );
 
     CREATE INDEX IF NOT EXISTS idx_comites_estado ON comites(estado);

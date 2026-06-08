@@ -11,6 +11,7 @@ function asyncWrap(fn: (req: AuthRequest, res: Response) => Promise<void>) {
 
 function canEditEstadisticas(role: string) { return ['administrador', 'territorial'].includes(role); }
 
+// GET /api/estadisticas — all estado metadata
 router.get('/', asyncWrap(async (req: AuthRequest, res: Response) => {
   const filter = req.role === 'administrador' || req.role === 'territorial'
     ? { clause: '1=1', params: {} }
@@ -24,8 +25,50 @@ router.get('/', asyncWrap(async (req: AuthRequest, res: Response) => {
     matriculaSuperior: r.matricula_superior,
     matriculaMediaSuperior: r.matricula_media_superior,
     participacionJornadas: r.participacion_jornadas,
+    metaComites: r.meta_comites,
   }));
   res.json({ estadoEstadisticas: stats });
+}));
+
+// GET /api/estadisticas/resumen — per-state summary with computed counts
+router.get('/resumen', asyncWrap(async (req: AuthRequest, res: Response) => {
+  const filter = req.role === 'administrador' || req.role === 'territorial'
+    ? { clause: '1=1', params: {} }
+    : assignedStatesFilter(req);
+
+  // Prefix estado with e. to disambiguate in joined query
+  const clause = filter.clause === '1=1' ? '1=1' : filter.clause.replace(/estado/g, 'e.estado');
+
+  const rows = await queryAll(`
+    SELECT
+      e.estado,
+      e.poblacion_joven,
+      e.meta_comites,
+      COALESCE(c.comites, 0) AS comites_actuales,
+      COALESCE(i.integrantes, 0) AS integrantes_actuales
+    FROM estado_estadisticas e
+    LEFT JOIN (
+      SELECT estado, COUNT(*) AS comites FROM comites GROUP BY estado
+    ) c ON c.estado = e.estado
+    LEFT JOIN (
+      SELECT c2.estado, COUNT(*) AS integrantes
+      FROM integrantes i2
+      JOIN comites c2 ON c2.id = i2.comite_id
+      GROUP BY c2.estado
+    ) i ON i.estado = e.estado
+    WHERE ${clause}
+    ORDER BY e.estado
+  `, filter.params);
+
+  const resumen = rows.map((r: any) => ({
+    estado: r.estado,
+    poblacionJoven: r.poblacion_joven,
+    metaComites: r.meta_comites,
+    comitesActuales: Number(r.comites_actuales),
+    integrantesActuales: Number(r.integrantes_actuales),
+  }));
+
+  res.json({ resumen });
 }));
 
 router.put('/:estado', asyncWrap(async (req: AuthRequest, res: Response) => {
@@ -46,11 +89,12 @@ router.put('/:estado', asyncWrap(async (req: AuthRequest, res: Response) => {
   const data = req.body;
 
   await execute(`
-    INSERT INTO estado_estadisticas (estado, poblacion_joven, municipios, partido_gobernante, matricula_superior, matricula_media_superior, participacion_jornadas)
-    VALUES ($estado, $pj, $mun, $pg, $ms, $mms, $pjorn)
+    INSERT INTO estado_estadisticas (estado, poblacion_joven, municipios, partido_gobernante, matricula_superior, matricula_media_superior, participacion_jornadas, meta_comites)
+    VALUES ($estado, $pj, $mun, $pg, $ms, $mms, $pjorn, $meta)
     ON CONFLICT(estado) DO UPDATE SET
       poblacion_joven = $pj, municipios = $mun, partido_gobernante = $pg,
-      matricula_superior = $ms, matricula_media_superior = $mms, participacion_jornadas = $pjorn
+      matricula_superior = $ms, matricula_media_superior = $mms, participacion_jornadas = $pjorn,
+      meta_comites = $meta
   `, {
     $estado: estadoKey,
     $pj: data.poblacionJoven ?? 0,
@@ -59,6 +103,7 @@ router.put('/:estado', asyncWrap(async (req: AuthRequest, res: Response) => {
     $ms: data.matriculaSuperior ?? 0,
     $mms: data.matriculaMediaSuperior ?? 0,
     $pjorn: data.participacionJornadas ?? '',
+    $meta: data.metaComites ?? 0,
   });
 
   res.json({ message: 'Guardado' });

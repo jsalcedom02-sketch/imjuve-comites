@@ -83,6 +83,7 @@ export interface EstadoEstadisticas {
   matriculaSuperior: number;
   matriculaMediaSuperior: number;
   participacionJornadas: string;
+  metaComites: number;
 }
 
 export const PARTIDOS = [
