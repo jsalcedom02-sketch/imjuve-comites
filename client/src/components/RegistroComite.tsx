@@ -349,16 +349,16 @@ export default function RegistroComite() {
                 <th className="px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
                   Nombre
                 </th>
-                <th className="hidden sm:table-cell px-3 py-2 text-center font-bold text-xs uppercase tracking-wider">
+                <th className="px-3 py-2 text-center font-bold text-xs uppercase tracking-wider">
                   Sexo
                 </th>
-                <th className="hidden sm:table-cell px-3 py-2 text-center font-bold text-xs uppercase tracking-wider">
+                <th className="px-3 py-2 text-center font-bold text-xs uppercase tracking-wider">
                   Edad
                 </th>
-                <th className="hidden md:table-cell px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
                   Municipio
                 </th>
-                <th className="hidden md:table-cell px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
                   Teléfono
                 </th>
               </tr>
@@ -386,7 +386,7 @@ export default function RegistroComite() {
                       placeholder="Nombre completo"
                     />
                   </td>
-                  <td className="hidden sm:table-cell px-3 py-1.5">
+                  <td className="px-3 py-1.5">
                     <select
                       {...register(`integrantes.${index}.sexo`)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded focus:border-teal outline-none text-sm text-center"
@@ -396,7 +396,7 @@ export default function RegistroComite() {
                       <option value="X">X</option>
                     </select>
                   </td>
-                  <td className="hidden sm:table-cell px-3 py-1.5">
+                  <td className="px-3 py-1.5">
                     <select
                       {...register(`integrantes.${index}.edad`, {
                         valueAsNumber: true,
@@ -409,7 +409,7 @@ export default function RegistroComite() {
                       ))}
                     </select>
                   </td>
-                  <td className="hidden md:table-cell px-3 py-1.5">
+                  <td className="hidden sm:table-cell px-3 py-1.5">
                     <select
                       {...register(`integrantes.${index}.municipio`)}
                       disabled={!watchEstado}
@@ -423,7 +423,7 @@ export default function RegistroComite() {
                       ))}
                     </select>
                   </td>
-                  <td className="hidden md:table-cell px-3 py-1.5">
+                  <td className="hidden sm:table-cell px-3 py-1.5">
                     <input
                       type="tel"
                       {...register(`integrantes.${index}.telefono`)}

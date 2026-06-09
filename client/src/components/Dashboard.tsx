@@ -263,11 +263,11 @@ export default function Dashboard() {
             <thead>
               <tr className="text-left" style={{ color: MUT }}>
                 <th className="pb-2 pr-3 font-semibold">Estado</th>
-                <th className="pb-2 pr-3 font-semibold text-right">Población joven</th>
-                <th className="pb-2 pr-3 font-semibold text-right">Meta comités</th>
-                <th className="pb-2 pr-3 font-semibold text-right">Comités actuales</th>
-                <th className="pb-2 pr-3 font-semibold text-right">Avance</th>
-                <th className="pb-2 font-semibold text-right">Integrantes</th>
+                <th className="pb-2 pr-3 font-semibold text-right hidden sm:table-cell">Población joven</th>
+                <th className="pb-2 pr-3 font-semibold text-right">Meta</th>
+                <th className="pb-2 pr-3 font-semibold text-right">Actuales</th>
+                <th className="pb-2 pr-3 font-semibold text-right min-w-[120px]">Avance</th>
+                <th className="pb-2 font-semibold text-right hidden sm:table-cell">Integrantes</th>
               </tr>
             </thead>
             <tbody>
@@ -279,7 +279,7 @@ export default function Dashboard() {
                   return (
                     <tr key={r.estado} style={{ borderBottom: '1px solid #ece0e0' }}>
                       <td className="py-2.5 pr-3 font-medium" style={{ color: '#8a4a55' }}>{r.estado}</td>
-                      <td className="py-2.5 pr-3 text-right tabular-nums" style={{ color: '#5e0b1e' }}>{r.poblacionJoven > 0 ? r.poblacionJoven.toLocaleString('es-MX') : '—'}</td>
+                      <td className="py-2.5 pr-3 text-right tabular-nums hidden sm:table-cell" style={{ color: '#5e0b1e' }}>{r.poblacionJoven > 0 ? r.poblacionJoven.toLocaleString('es-MX') : '—'}</td>
                       <td className="py-2.5 pr-3 text-right tabular-nums" style={{ color: '#5e0b1e' }}>{r.metaComites > 0 ? r.metaComites : '—'}</td>
                       <td className="py-2.5 pr-3 text-right tabular-nums font-semibold" style={{ color: r.comitesActuales >= r.metaComites && r.metaComites > 0 ? '#005e63' : '#8a4a55' }}>{r.comitesActuales}</td>
                       <td className="py-2.5 pr-3">
@@ -290,7 +290,7 @@ export default function Dashboard() {
                           <span className="text-[12px] font-bold tabular-nums min-w-[36px] text-right" style={{ color: barColor }}>{avance}%</span>
                         </div>
                       </td>
-                      <td className="py-2.5 text-right tabular-nums" style={{ color: '#5e0b1e' }}>{r.integrantesActuales > 0 ? r.integrantesActuales.toLocaleString('es-MX') : '—'}</td>
+                      <td className="py-2.5 text-right tabular-nums hidden sm:table-cell" style={{ color: '#5e0b1e' }}>{r.integrantesActuales > 0 ? r.integrantesActuales.toLocaleString('es-MX') : '—'}</td>
                     </tr>
                   );
                 })}

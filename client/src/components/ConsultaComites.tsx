@@ -18,6 +18,7 @@ export default function ConsultaComites() {
   const [editTitle, setEditTitle] = useState({ nombre: '', folio: '' });
   const [editIntegrantes, setEditIntegrantes] = useState<Integrante[]>([]);
   const [editPhoto, setEditPhoto] = useState<string | null>(null);
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   const estados = [...new Set(records.map((r) => r.estado))].sort();
 
@@ -285,7 +286,11 @@ export default function ConsultaComites() {
                         {record.evidenciaFotografica && (
                           <div className="mt-2">
                             <span style={{ color: '#ad8b91' }} className="text-xs block mb-1">Foto de protesta</span>
-                            <img src={record.evidenciaFotografica} alt="Foto de protesta" className="max-h-24 rounded-lg border" style={{ borderColor: '#ece0e0' }} />
+                            <img src={record.evidenciaFotografica} alt="Foto de protesta"
+                              className="max-h-24 rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                              style={{ borderColor: '#ece0e0' }}
+                              onClick={() => setFotoAmpliada(record.evidenciaFotografica)}
+                            />
                           </div>
                         )}
                       </div>
@@ -307,11 +312,11 @@ export default function ConsultaComites() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr style={{ backgroundColor: '#f7ebee' }}>
-                              <th className="hidden sm:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Cargo</th>
+                              <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Cargo</th>
                               <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Nombre</th>
                               <th className="hidden sm:table-cell px-3 py-2 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Edad</th>
                               <th className="hidden sm:table-cell px-3 py-2 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Sexo</th>
-                              <th className="hidden md:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Municipio</th>
+                              <th className="hidden sm:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Municipio</th>
                               <th className="hidden md:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Teléfono</th>
                               <th className="hidden lg:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Email</th>
                               <th className="hidden lg:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Población vulnerable</th>
@@ -320,11 +325,11 @@ export default function ConsultaComites() {
                           <tbody>
                             {record.integrantes.map((int, i) => (
                               <tr key={i} className="border-t" style={{ borderColor: '#ece0e0' }}>
-                                <td className="hidden sm:table-cell px-3 py-2 text-xs font-medium" style={{ color: '#6d0f22' }}>{int.cargo}</td>
+                                <td className="px-3 py-2 text-xs font-medium" style={{ color: '#6d0f22' }}>{int.cargo}</td>
                                 <td className="px-3 py-2 font-medium" style={{ color: '#5e0b1e' }}>{int.nombre}</td>
                                 <td className="hidden sm:table-cell px-3 py-2 text-center" style={{ color: '#5e0b1e' }}>{int.edad}</td>
                                 <td className="hidden sm:table-cell px-3 py-2 text-center" style={{ color: '#5e0b1e' }}>{int.sexo}</td>
-                                <td className="hidden md:table-cell px-3 py-2" style={{ color: '#5e0b1e' }}>{int.municipio}</td>
+                                <td className="hidden sm:table-cell px-3 py-2" style={{ color: '#5e0b1e' }}>{int.municipio}</td>
                                 <td className="hidden md:table-cell px-3 py-2">
                                   <span className="inline-flex items-center gap-1 font-mono text-xs" style={{ color: '#005e63' }}>
                                     <Phone size={12} />
@@ -348,6 +353,21 @@ export default function ConsultaComites() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal foto ampliada */}
+      {fotoAmpliada && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setFotoAmpliada(null)}>
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <button onClick={() => setFotoAmpliada(null)}
+              className="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-lg z-10">
+              <X size={20} />
+            </button>
+            <img src={fotoAmpliada} alt="Foto ampliada"
+              className="max-w-full max-h-[85vh] rounded-lg shadow-2xl" />
+          </div>
         </div>
       )}
     </div>
