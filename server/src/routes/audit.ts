@@ -18,7 +18,7 @@ router.get('/', asyncWrap(async (req: AuthRequest, res: Response) => {
 
   if (action) { sql += ' AND action = $action'; params.$action = action; }
   if (entity) { sql += ' AND entity = $entity'; params.$entity = entity; }
-  if (username) { sql += ' AND username ILIKE $username'; params.$username = `%${username}%`; }
+  if (username) { sql += ' AND LOWER(username) LIKE $username'; params.$username = `%${username.toLowerCase()}%`; }
 
   sql += ' ORDER BY created_at DESC LIMIT $limit OFFSET $offset';
   params.$limit = parseInt(limit) || 200;

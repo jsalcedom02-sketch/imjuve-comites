@@ -59,6 +59,6 @@ initDb()
     });
   })
   .catch((err) => {
-    console.error('❌ Error al conectar a PostgreSQL:', err);
+    console.error('❌ Error al inicializar la base de datos:', err);
     process.exit(1);
   });
