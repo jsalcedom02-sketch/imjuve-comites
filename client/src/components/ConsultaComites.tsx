@@ -308,16 +308,16 @@ export default function ConsultaComites() {
                   <div style={{ borderTop: '1px solid #ece0e0' }}>
                     <div className="px-6 py-4">
                       <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#ad8b91' }}>Integrantes</h4>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr style={{ backgroundColor: '#f7ebee' }}>
-                              <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Cargo</th>
-                              <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Nombre</th>
-                              <th className="hidden sm:table-cell px-3 py-2 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Edad</th>
-                              <th className="hidden sm:table-cell px-3 py-2 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Sexo</th>
-                              <th className="hidden sm:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Municipio</th>
-                              <th className="hidden md:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Teléfono</th>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm" style={{ minWidth: 650 }}>
+                            <thead>
+                              <tr style={{ backgroundColor: '#f7ebee' }}>
+                                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Cargo</th>
+                                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Nombre</th>
+                                <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Edad</th>
+                                <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Sexo</th>
+                                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Municipio</th>
+                                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Teléfono</th>
                               <th className="hidden lg:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Email</th>
                               <th className="hidden lg:table-cell px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{ color: '#6d0f22' }}>Población vulnerable</th>
                             </tr>
@@ -327,10 +327,10 @@ export default function ConsultaComites() {
                               <tr key={i} className="border-t" style={{ borderColor: '#ece0e0' }}>
                                 <td className="px-3 py-2 text-xs font-medium" style={{ color: '#6d0f22' }}>{int.cargo}</td>
                                 <td className="px-3 py-2 font-medium" style={{ color: '#5e0b1e' }}>{int.nombre}</td>
-                                <td className="hidden sm:table-cell px-3 py-2 text-center" style={{ color: '#5e0b1e' }}>{int.edad}</td>
-                                <td className="hidden sm:table-cell px-3 py-2 text-center" style={{ color: '#5e0b1e' }}>{int.sexo}</td>
-                                <td className="hidden sm:table-cell px-3 py-2" style={{ color: '#5e0b1e' }}>{int.municipio}</td>
-                                <td className="hidden md:table-cell px-3 py-2">
+                                <td className="px-3 py-2 text-center" style={{ color: '#5e0b1e' }}>{int.edad}</td>
+                                <td className="px-3 py-2 text-center" style={{ color: '#5e0b1e' }}>{int.sexo}</td>
+                                <td className="px-3 py-2" style={{ color: '#5e0b1e' }}>{int.municipio}</td>
+                                <td className="px-3 py-2">
                                   <span className="inline-flex items-center gap-1 font-mono text-xs" style={{ color: '#005e63' }}>
                                     <Phone size={12} />
                                     {int.telefono.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')}

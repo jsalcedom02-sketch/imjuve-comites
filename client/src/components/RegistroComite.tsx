@@ -340,7 +340,7 @@ export default function RegistroComite() {
           DATOS DE INTEGRANTES
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ minWidth: 700 }}>
             <thead>
               <tr className="bg-teal-50 text-teal">
                 <th className="px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
@@ -355,10 +355,10 @@ export default function RegistroComite() {
                 <th className="px-3 py-2 text-center font-bold text-xs uppercase tracking-wider">
                   Edad
                 </th>
-                <th className="hidden sm:table-cell px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
+                <th className="px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
                   Municipio
                 </th>
-                <th className="hidden sm:table-cell px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
+                <th className="px-3 py-2 text-left font-bold text-xs uppercase tracking-wider">
                   Teléfono
                 </th>
               </tr>
@@ -409,7 +409,7 @@ export default function RegistroComite() {
                       ))}
                     </select>
                   </td>
-                  <td className="hidden sm:table-cell px-3 py-1.5">
+                  <td className="px-3 py-1.5">
                     <select
                       {...register(`integrantes.${index}.municipio`)}
                       disabled={!watchEstado}
@@ -423,7 +423,7 @@ export default function RegistroComite() {
                       ))}
                     </select>
                   </td>
-                  <td className="hidden sm:table-cell px-3 py-1.5">
+                  <td className="px-3 py-1.5">
                     <input
                       type="tel"
                       {...register(`integrantes.${index}.telefono`)}
