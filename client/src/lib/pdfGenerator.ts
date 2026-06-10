@@ -339,20 +339,17 @@ export async function generateActaPDF(record: ComiteRecord): Promise<void> {
   doc.save(filename);
 }
 
-/** Vista previa: abre el PDF en una nueva pestaña (o descarga en móvil) */
-export async function previewActaPDF(record: ComiteRecord): Promise<void> {
+/** Genera el PDF y devuelve una URL blob para iframe/modal */
+export async function buildPdfUrl(record: ComiteRecord): Promise<string> {
   const doc = await buildActaPDF(record);
-  const namePart = sanitizeForFilename(record.nombreComite);
-  const filename = `ACTA_${record.folio}_${namePart}.pdf`;
   const blob = doc.output('blob');
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return URL.createObjectURL(blob);
+}
+
+/** Vista previa: abre el PDF en una nueva pestaña (fallback para escritorio) */
+export async function previewActaPDF(record: ComiteRecord): Promise<void> {
+  const url = await buildPdfUrl(record);
+  window.open(url, '_blank');
 }
 
 /** Genera un PDF y devuelve como blob (para descarga masiva) */

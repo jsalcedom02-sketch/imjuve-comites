@@ -18,11 +18,12 @@ import {
 } from '../types/comiteSchema';
 import { ESTADOS_MUNICIPIOS, ESTADOS } from '../data/municipios';
 import { generateFolioPreview } from '../lib/folioGenerator';
-import { generateActaPDF, previewActaPDF } from '../lib/pdfGenerator';
+import { generateActaPDF, buildPdfUrl } from '../lib/pdfGenerator';
 import { compressImage } from '../lib/imageUtils';
 import { useComiteStore } from '../store/comiteStore';
 import { useAuthStore } from '../store/authStore';
 import { createComite } from '../api/comites';
+import PdfPreviewModal from './PdfPreviewModal';
 
 function buildIntegrantes(count: number) {
   const cargos = buildCargos(count);
@@ -51,6 +52,7 @@ export default function RegistroComite() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [folioPreview, setFolioPreview] = useState('---');
   const [successMsg, setSuccessMsg] = useState('');
+  const [previewPdf, setPreviewPdf] = useState<string | null>(null);
 
   const {
     register,
@@ -142,9 +144,15 @@ export default function RegistroComite() {
     }
   };
 
+  const closePdfPreview = () => {
+    if (previewPdf) URL.revokeObjectURL(previewPdf);
+    setPreviewPdf(null);
+  };
+
   const errList = Object.entries(errors);
 
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" style={{ fontFamily: "'Noto Sans', system-ui, sans-serif" }}>
       {successMsg && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-green-800 font-medium text-center">
@@ -569,7 +577,8 @@ export default function RegistroComite() {
                     fechaRegistro: new Date().toISOString(),
                     id: 'preview',
                   };
-                  await previewActaPDF(record);
+                  const url = await buildPdfUrl(record);
+                  setPreviewPdf(url);
                 } finally {
                   setIsLoading(false);
                 }
@@ -586,5 +595,12 @@ export default function RegistroComite() {
         </button>
       </div>
     </form>
+
+    <PdfPreviewModal
+      pdfUrl={previewPdf}
+      filename="ACTA_BORRADOR.pdf"
+      onClose={closePdfPreview}
+    />
+    </>
   );
 }
