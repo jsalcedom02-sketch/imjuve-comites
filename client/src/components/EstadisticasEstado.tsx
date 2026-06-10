@@ -397,7 +397,8 @@ export default function EstadisticasEstado() {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {fields.map((f) => {
                         const val = data[f.key];
-                        const display = f.type === 'number' ? (val as number).toLocaleString('es-MX') : val;
+                        const num = typeof val === 'number' ? val : Number(val) || 0;
+                        const display = f.type === 'number' ? num.toLocaleString('es-MX') : (val || '—');
                         return (
                           <div key={f.key} className="text-center p-3 rounded-xl" style={{ backgroundColor: '#f9f5f2' }}>
                             <f.icon size={20} className="mx-auto mb-1" style={{ color: '#005e63' }} />
