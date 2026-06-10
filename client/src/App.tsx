@@ -7,7 +7,7 @@ import ConsultaComites from './components/ConsultaComites';
 import Dashboard from './components/Dashboard';
 import EstadisticasEstado from './components/EstadisticasEstado';
 import ImportarCSV from './components/ImportarCSV';
-import AdminUsers from './components/AdminUsers';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useComiteStore } from './store/comiteStore';
 import { useAuthStore } from './store/authStore';
 
@@ -35,13 +35,15 @@ export default function App() {
   return (
     <div className={loggingOut ? 'animate-page-out' : ''}>
       <Layout>
-        {activeTab === 'registro' && <div key="registro" className="animate-page-in"><RegistroComite /></div>}
-        {activeTab === 'historial' && <div key="historial" className="animate-page-in-left"><HistorialActas /></div>}
-        {activeTab === 'consulta' && <div key="consulta" className="animate-page-in"><ConsultaComites /></div>}
-        {activeTab === 'dashboard' && <div key="dashboard" className="animate-page-in-left"><Dashboard /></div>}
-        {activeTab === 'estadisticas' && <div key="estadisticas" className="animate-page-in"><EstadisticasEstado /></div>}
-        {activeTab === 'importar' && <div key="importar" className="animate-page-in-left"><ImportarCSV /></div>}
-        {activeTab === 'admin' && <div key="admin" className="animate-page-in"><AdminUsers /></div>}
+        <ErrorBoundary>
+          {activeTab === 'registro' && <div key="registro" className="animate-page-in"><RegistroComite /></div>}
+          {activeTab === 'historial' && <div key="historial" className="animate-page-in-left"><HistorialActas /></div>}
+          {activeTab === 'consulta' && <div key="consulta" className="animate-page-in"><ConsultaComites /></div>}
+          {activeTab === 'dashboard' && <div key="dashboard" className="animate-page-in-left"><Dashboard /></div>}
+          {activeTab === 'estadisticas' && <div key="estadisticas" className="animate-page-in"><EstadisticasEstado /></div>}
+          {activeTab === 'importar' && <div key="importar" className="animate-page-in-left"><ImportarCSV /></div>}
+          {activeTab === 'admin' && <div key="admin" className="animate-page-in"><AdminUsers /></div>}
+        </ErrorBoundary>
       </Layout>
     </div>
   );
