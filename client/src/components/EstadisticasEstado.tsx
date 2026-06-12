@@ -89,15 +89,6 @@ const emptyRow = (estado: string): EstadoEstadisticas => ({
   metaComites: 0,
 });
 
-function extractPolyCoords(geom: any): number[][][][] {
-  if (!geom) return [];
-  if (geom.type === 'Polygon') return [geom.coordinates];
-  if (geom.type === 'MultiPolygon') return geom.coordinates;
-  if (geom.type === 'GeometryCollection')
-    return geom.geometries.flatMap((g: any) => extractPolyCoords(g));
-  return [];
-}
-
 function getSubPaths(geom: any, pathGen: any): string[] {
   if (!geom) return [];
   if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
@@ -160,7 +151,7 @@ function StateMap({ estadoKey, displayName }: { estadoKey: string; displayName: 
   }, [estadoKey]);
 
   const derived = useMemo(() => {
-    if (!geoJSON) return null;
+    if (!geoJSON || !geoJSON.features?.length) return null;
 
     const projection = geoMercator().fitExtent(
       [[PAD, PAD], [SVG_W - PAD, SVG_H - PAD]],
@@ -168,22 +159,23 @@ function StateMap({ estadoKey, displayName }: { estadoKey: string; displayName: 
     );
     const pathGen = geoPath(projection);
 
-    const mergedCoords = geoJSON.features.flatMap((f: any) => extractPolyCoords(f.geometry));
-    const mergedState = {
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'MultiPolygon', coordinates: mergedCoords },
-    };
-    const stateOutline = pathGen(mergedState as any);
-    const centroid = stateOutline ? pathGen.centroid(mergedState as any) : null;
+    const municipioPaths: { d: string; key: string }[] = [];
+    for (let i = 0; i < geoJSON.features.length; i++) {
+      const subPaths = getSubPaths(geoJSON.features[i].geometry, pathGen);
+      for (let j = 0; j < subPaths.length; j++) {
+        if (subPaths[j]) municipioPaths.push({ d: subPaths[j], key: `m-${i}-${j}` });
+      }
+    }
+
+    let centroid: [number, number] | null = null;
+    for (const f of geoJSON.features) {
+      const c = pathGen.centroid(f);
+      if (c && !isNaN(c[0]) && !isNaN(c[1])) { centroid = [c[0], c[1]]; break; }
+    }
+
     const capital = CAPITALES[estadoKey] || '';
 
-    const allSubPaths = geoJSON.features.flatMap((f: any, i: number) => {
-      const paths = getSubPaths(f.geometry, pathGen);
-      return paths.map((d, j) => ({ d, key: `${i}-${j}` }));
-    });
-
-    return { stateOutline, centroid, capital, allSubPaths };
+    return { centroid, capital, municipioPaths };
   }, [geoJSON, estadoKey]);
 
   if (loading) {
@@ -205,7 +197,7 @@ function StateMap({ estadoKey, displayName }: { estadoKey: string; displayName: 
     );
   }
 
-  const { stateOutline, centroid, capital, allSubPaths } = derived;
+  const { centroid, capital, municipioPaths } = derived;
 
   return (
     <div className="relative w-full transition-opacity duration-500">
@@ -220,22 +212,17 @@ function StateMap({ estadoKey, displayName }: { estadoKey: string; displayName: 
             <stop offset="50%" stopColor="#691C32" />
             <stop offset="100%" stopColor="#4a1323" />
           </linearGradient>
-          <filter id="state-shadow" x="-10%" y="-10%" width="130%" height="130%">
-            <feDropShadow dx={0} dy={2} stdDeviation={4} floodColor="#691C32" floodOpacity={0.3} />
-          </filter>
         </defs>
 
-        {stateOutline && (
-          <path d={stateOutline} fill="url(#state-fill)" filter="url(#state-shadow)" />
-        )}
-
-        {allSubPaths.map((p) => (
-          <path key={p.key} d={p.d} fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={0.8} />
+        {municipioPaths.map((p) => (
+          <path key={`fill-${p.key}`} d={p.d} fill="url(#state-fill)" />
         ))}
-
-        {stateOutline && (
-          <path d={stateOutline} fill="none" stroke="#fff" strokeWidth={1.5} opacity={0.6} />
-        )}
+        {municipioPaths.map((p) => (
+          <path key={`line-${p.key}`} d={p.d} fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={0.8} />
+        ))}
+        {municipioPaths.map((p) => (
+          <path key={`out-${p.key}`} d={p.d} fill="none" stroke="#fff" strokeWidth={1.5} opacity={0.6} />
+        ))}
 
         <text
           x={SVG_W / 2} y={PAD + 6}
